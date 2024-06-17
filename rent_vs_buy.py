@@ -1,61 +1,55 @@
 import streamlit as st
-import numpy as np
 
-# Function to calculate monthly mortgage payment
-def calculate_mortgage_payment(principal, annual_rate, years):
-    monthly_rate = annual_rate / 12 / 100
-    num_payments = years * 12
-    mortgage_payment = (principal * monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
-    return mortgage_payment
-
-# Function to calculate total cost of buying
-def calculate_buying_cost(home_price, down_payment_percent, loan_term, interest_rate, property_tax_rate):
-    down_payment = home_price * (down_payment_percent / 100)
+# Function to calculate buying cost
+def calculate_buying_cost(home_price, down_payment_percentage, loan_term, interest_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage):
+    down_payment = home_price * down_payment_percentage
     loan_amount = home_price - down_payment
-    monthly_mortgage_payment = calculate_mortgage_payment(loan_amount, interest_rate, loan_term)
-    monthly_property_tax = home_price * (property_tax_rate / 100) / 12
-    total_monthly_cost = monthly_mortgage_payment + monthly_property_tax
-    return total_monthly_cost
+    monthly_interest_rate = interest_rate / 12
+    number_of_payments = loan_term * 12
+    mortgage_payment = loan_amount * (monthly_interest_rate * (1 + monthly_interest_rate)**number_of_payments) / ((1 + monthly_interest_rate)**number_of_payments - 1)
+    total_mortgage_payment = mortgage_payment * 12 * duration_years
+    total_property_tax = home_price * property_tax_rate * duration_years
+    total_insurance = insurance_annual * duration_years
+    total_maintenance = home_price * maintenance_percentage * duration_years
+    selling_costs = home_price * selling_cost_percentage
+    total_buying_cost = total_mortgage_payment + total_property_tax + total_insurance + total_maintenance + down_payment + selling_costs
+    return total_buying_cost
 
-# Function to calculate total cost of renting
-def calculate_renting_cost(rent_amount, annual_rent_increase_rate, years):
-    total_rent_cost = 0
-    for year in range(years):
-        total_rent_cost += rent_amount * 12
-        rent_amount *= (1 + annual_rent_increase_rate / 100)
-    return total_rent_cost / years / 12
+# Function to calculate renting cost
+def calculate_renting_cost(monthly_rent, rent_inflation_rate, insurance_annual, duration_years):
+    total_rent = sum([monthly_rent * (1 + rent_inflation_rate)**year for year in range(duration_years)]) * 12
+    total_insurance = insurance_annual * duration_years
+    total_renting_cost = total_rent + total_insurance
+    return total_renting_cost
 
-# Streamlit app
-st.title("Rent vs Buy Calculator")
+# Main function to run the Streamlit app
+def rent_vs_buy_calculator():
+    st.title("Rent vs. Buy Calculator")
 
-st.sidebar.header("User Inputs")
-home_price = st.sidebar.number_input("Home Price ($)", value=300000)
-down_payment_percent = st.sidebar.slider("Down Payment (%)", min_value=0, max_value=100, value=20)
-loan_term = st.sidebar.slider("Loan Term (years)", min_value=1, max_value=30, value=30)
-interest_rate = st.sidebar.number_input("Interest Rate (%)", value=3.0)
-property_tax_rate = st.sidebar.number_input("Property Tax Rate (%)", value=1.25)
-rent_amount = st.sidebar.number_input("Monthly Rent ($)", value=1500)
-annual_rent_increase_rate = st.sidebar.number_input("Annual Rent Increase Rate (%)", value=2.0)
-years = st.sidebar.slider("Comparison Period (years)", min_value=1, max_value=30, value=30)
+    # Input fields for user data
+    home_price = st.number_input("Home Price", value=300000)
+    down_payment_percentage = st.slider("Down Payment Percentage", 0.0, 1.0, value=0.20)
+    loan_term = st.number_input("Loan Term (years)", value=30)
+    interest_rate = st.slider("Interest Rate", 0.0, 0.10, value=0.04)
+    property_tax_rate = st.slider("Property Tax Rate", 0.0, 0.05, value=0.01)
+    insurance_annual = st.number_input("Homeowners Insurance (annual)", value=1000)
+    maintenance_percentage = st.slider("Maintenance Cost Percentage", 0.0, 0.05, value=0.01)
+    monthly_rent = st.number_input("Monthly Rent", value=1500)
+    rent_inflation_rate = st.slider("Rent Inflation Rate", 0.0, 0.10, value=0.03)
+    investment_rate = st.slider("Investment Rate (annual)", 0.0, 0.10, value=0.05)
+    duration_years = st.number_input("Duration of Stay (years)", value=10)
+    selling_cost_percentage = st.slider("Selling Cost Percentage", 0.0, 0.10, value=0.06)
 
-total_monthly_buying_cost = calculate_buying_cost(home_price, down_payment_percent, loan_term, interest_rate, property_tax_rate)
-total_monthly_renting_cost = calculate_renting_cost(rent_amount, annual_rent_increase_rate, years)
+    if st.button("Calculate"):
+        buying_cost = calculate_buying_cost(home_price, down_payment_percentage, loan_term, interest_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage)
+        renting_cost = calculate_renting_cost(monthly_rent, rent_inflation_rate, insurance_annual, duration_years)
+        opportunity_cost = down_payment_percentage * home_price * (1 + investment_rate)**duration_years
+        net_benefit = buying_cost - renting_cost + opportunity_cost
 
-st.write("### Total Monthly Costs")
-st.write(f"Buying: ${total_monthly_buying_cost:,.2f}")
-st.write(f"Renting: ${total_monthly_renting_cost:,.2f}")
+        st.write(f"Total Buying Cost: ${buying_cost:,.2f}")
+        st.write(f"Total Renting Cost: ${renting_cost:,.2f}")
+        st.write(f"Opportunity Cost of Down Payment: ${opportunity_cost:,.2f}")
+        st.write(f"Net Financial Benefit: ${net_benefit:,.2f}")
 
-if total_monthly_buying_cost < total_monthly_renting_cost:
-    st.write("### Buying is more cost-effective over the specified period.")
-else:
-    st.write("### Renting is more cost-effective over the specified period.")
-
-st.write("### Detailed Breakdown")
-st.write(f"**Home Price:** ${home_price:,.2f}")
-st.write(f"**Down Payment:** {down_payment_percent}%")
-st.write(f"**Loan Term:** {loan_term} years")
-st.write(f"**Interest Rate:** {interest_rate}%")
-st.write(f"**Property Tax Rate:** {property_tax_rate}%")
-st.write(f"**Monthly Rent:** ${rent_amount:,.2f}")
-st.write(f"**Annual Rent Increase Rate:** {annual_rent_increase_rate}%")
-st.write(f"**Comparison Period:** {years} years")
+if __name__ == "__main__":
+    rent_vs_buy_calculator()
