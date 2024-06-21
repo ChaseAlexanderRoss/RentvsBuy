@@ -1,5 +1,12 @@
 import streamlit as st
 
+# Function to fetch real-world data (simplified example)
+def get_real_world_data():
+    mortgage_rate = 6.87 / 100  # Example rate from FRED data
+    annual_rent_increase = 0.03  # Example rent increase from market trends
+    home_appreciation_rate = 0.07  # Example appreciation rate from FHFA
+    return mortgage_rate, annual_rent_increase, home_appreciation_rate
+
 # Function to calculate buying cost
 def calculate_buying_cost(home_price, down_payment_percentage, loan_term, interest_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage):
     down_payment = home_price * down_payment_percentage
@@ -28,9 +35,9 @@ def rent_vs_buy_calculator():
     st.title("Rent vs. Buy Calculator")
     description_placeholder = st.empty()
     description_placeholder.markdown("## Compare the costs and benefits of renting versus buying a home.")
-
+    
     st.sidebar.header("Input Parameters")
-
+    
     with st.sidebar:
         st.markdown("### General")
         duration_years = st.number_input("Duration of Stay (years)", value=10, step=1)
@@ -39,23 +46,24 @@ def rent_vs_buy_calculator():
         home_price = st.number_input("Home Price ($)", value=300000, step=10000)
         down_payment_percentage = st.slider("Down Payment Percentage", 0.0, 1.0, value=0.20)
         loan_term = st.number_input("Loan Term (years)", value=30, step=1)
-        interest_rate = st.slider("Interest Rate (%)", 0.0, 10.0, value=4.0) / 100
-        property_tax_rate = st.slider("Property Tax Rate (%)", 0.0, 5.0, value=1.0) / 100
         insurance_annual = st.number_input("Homeowners Insurance (annual $)", value=1000, step=100)
         maintenance_percentage = st.slider("Maintenance Cost Percentage", 0.0, 5.0, value=1.0) / 100
+        property_tax_rate = st.slider("Property Tax Rate (%)", 0.0, 5.0, value=1.0) / 100
         selling_cost_percentage = st.slider("Selling Cost Percentage", 0.0, 10.0, value=6.0) / 100
 
         st.markdown("### Renting Details")
         monthly_rent = st.number_input("Monthly Rent ($)", value=1500, step=50)
-        rent_inflation_rate = st.slider("Rent Inflation Rate (%)", 0.0, 10.0, value=3.0) / 100
         insurance_annual_rent = st.number_input("Renter's Insurance (annual $)", value=200, step=50)
-
+        
         st.markdown("### Investment")
         investment_rate = st.slider("Investment Rate (%)", 0.0, 10.0, value=5.0) / 100
 
+    # Get real-world data
+    mortgage_rate, annual_rent_increase, home_appreciation_rate = get_real_world_data()
+
     if st.button("Calculate"):
-        buying_cost = calculate_buying_cost(home_price, down_payment_percentage, loan_term, interest_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage)
-        renting_cost = calculate_renting_cost(monthly_rent, rent_inflation_rate, insurance_annual_rent, duration_years)
+        buying_cost = calculate_buying_cost(home_price, down_payment_percentage, loan_term, mortgage_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage)
+        renting_cost = calculate_renting_cost(monthly_rent, annual_rent_increase, insurance_annual_rent, duration_years)
         opportunity_cost = (home_price * down_payment_percentage) * (1 + investment_rate)**duration_years
         net_benefit = buying_cost - renting_cost + opportunity_cost
 
