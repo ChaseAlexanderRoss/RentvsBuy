@@ -26,7 +26,8 @@ def calculate_renting_cost(monthly_rent, rent_inflation_rate, insurance_annual, 
 def rent_vs_buy_calculator():
     st.set_page_config(page_title="Rent vs. Buy Calculator", layout="centered")
     st.title("Rent vs. Buy Calculator")
-    st.markdown("## Compare the costs and benefits of renting versus buying a home.")
+    description_placeholder = st.empty()
+    description_placeholder.markdown("## Compare the costs and benefits of renting versus buying a home.")
 
     st.sidebar.header("Input Parameters")
 
@@ -56,6 +57,11 @@ def rent_vs_buy_calculator():
         opportunity_cost = (home_price * down_payment_percentage) * (1 + investment_rate)**duration_years
         net_benefit = buying_cost - renting_cost + opportunity_cost
 
+        if net_benefit > 0:
+            description_placeholder.markdown("# It is better to buy a home based on the financial calculations.")
+        else:
+            description_placeholder.markdown("# It is better to rent based on the financial calculations.")
+        
         st.subheader("Results")
         col1, col2 = st.columns(2)
         with col1:
@@ -70,11 +76,6 @@ def rent_vs_buy_calculator():
 
         st.markdown("### Net Financial Benefit")
         st.write(f"${net_benefit:,.2f}")
-
-        if net_benefit > 0:
-            st.success("It is better to buy a home based on the financial calculations.")
-        else:
-            st.warning("It is better to rent based on the financial calculations.")
 
 if __name__ == "__main__":
     rent_vs_buy_calculator()
