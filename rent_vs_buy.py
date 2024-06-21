@@ -2,12 +2,21 @@ import streamlit as st
 
 # Function to fetch real-world data
 def get_real_world_data():
-    # These values are examples and should be replaced with real-time data fetching in a production environment
     mortgage_rate = 6.87 / 100  # Example rate from FRED data
     annual_rent_increase = 0.03  # Example rent increase from market trends
     home_appreciation_rate = 0.07  # Example appreciation rate from FHFA
     down_payment_percentage = 0.136  # Example average down payment from NAR and Rocket Mortgage
-    return mortgage_rate, annual_rent_increase, home_appreciation_rate, down_payment_percentage
+    home_price = 513100  # Average home price from FRED data
+    insurance_annual = 1312  # Average homeowners insurance premium
+    property_tax_rate = 0.0107  # Average property tax rate
+    selling_cost_percentage = 0.06  # Average selling costs
+    monthly_rent = 1480  # Average monthly rent from Zillow
+    insurance_annual_rent = 174  # Average renter's insurance premium
+    investment_rate = 0.07  # Average annual ROI from stock market
+    return (mortgage_rate, annual_rent_increase, home_appreciation_rate, 
+            down_payment_percentage, home_price, insurance_annual, 
+            property_tax_rate, selling_cost_percentage, monthly_rent, 
+            insurance_annual_rent, investment_rate)
 
 # Function to calculate buying cost
 def calculate_buying_cost(home_price, down_payment_percentage, loan_term, interest_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage):
@@ -43,33 +52,50 @@ def rent_vs_buy_calculator():
     duration_years = st.sidebar.number_input("Duration of Stay (years)", value=10, step=1)
     
     if st.sidebar.button("Use Real-World Data"):
-        mortgage_rate, annual_rent_increase, home_appreciation_rate, down_payment_percentage = get_real_world_data()
+        (mortgage_rate, annual_rent_increase, home_appreciation_rate, 
+         down_payment_percentage, home_price, insurance_annual, 
+         property_tax_rate, selling_cost_percentage, monthly_rent, 
+         insurance_annual_rent, investment_rate) = get_real_world_data()
         st.session_state['mortgage_rate'] = mortgage_rate
         st.session_state['annual_rent_increase'] = annual_rent_increase
         st.session_state['home_appreciation_rate'] = home_appreciation_rate
         st.session_state['down_payment_percentage'] = down_payment_percentage
+        st.session_state['home_price'] = home_price
+        st.session_state['insurance_annual'] = insurance_annual
+        st.session_state['property_tax_rate'] = property_tax_rate
+        st.session_state['selling_cost_percentage'] = selling_cost_percentage
+        st.session_state['monthly_rent'] = monthly_rent
+        st.session_state['insurance_annual_rent'] = insurance_annual_rent
+        st.session_state['investment_rate'] = investment_rate
 
     mortgage_rate = st.session_state.get('mortgage_rate', 0.0687)
     annual_rent_increase = st.session_state.get('annual_rent_increase', 0.03)
     home_appreciation_rate = st.session_state.get('home_appreciation_rate', 0.07)
     down_payment_percentage = st.session_state.get('down_payment_percentage', 0.20)
+    home_price = st.session_state.get('home_price', 300000)
+    insurance_annual = st.session_state.get('insurance_annual', 1000)
+    property_tax_rate = st.session_state.get('property_tax_rate', 0.01)
+    selling_cost_percentage = st.session_state.get('selling_cost_percentage', 0.06)
+    monthly_rent = st.session_state.get('monthly_rent', 1500)
+    insurance_annual_rent = st.session_state.get('insurance_annual_rent', 200)
+    investment_rate = st.session_state.get('investment_rate', 0.05)
     
     with st.sidebar:
         st.markdown("### Home Purchase Details")
-        home_price = st.number_input("Home Price ($)", value=300000, step=10000)
+        home_price = st.number_input("Home Price ($)", value=home_price, step=10000)
         down_payment_percentage = st.slider("Down Payment Percentage", 0.0, 1.0, value=down_payment_percentage)
         loan_term = st.number_input("Loan Term (years)", value=30, step=1)
-        insurance_annual = st.number_input("Homeowners Insurance (annual $)", value=1000, step=100)
+        insurance_annual = st.number_input("Homeowners Insurance (annual $)", value=insurance_annual, step=100)
         maintenance_percentage = st.slider("Maintenance Cost Percentage", 0.0, 5.0, value=1.0) / 100
-        property_tax_rate = st.slider("Property Tax Rate (%)", 0.0, 5.0, value=1.0) / 100
-        selling_cost_percentage = st.slider("Selling Cost Percentage", 0.0, 10.0, value=6.0) / 100
+        property_tax_rate = st.slider("Property Tax Rate (%)", 0.0, 5.0, value=property_tax_rate * 100) / 100
+        selling_cost_percentage = st.slider("Selling Cost Percentage", 0.0, 10.0, value=selling_cost_percentage * 100) / 100
 
         st.markdown("### Renting Details")
-        monthly_rent = st.number_input("Monthly Rent ($)", value=1500, step=50)
-        insurance_annual_rent = st.number_input("Renter's Insurance (annual $)", value=200, step=50)
+        monthly_rent = st.number_input("Monthly Rent ($)", value=monthly_rent, step=50)
+        insurance_annual_rent = st.number_input("Renter's Insurance (annual $)", value=insurance_annual_rent, step=50)
         
         st.markdown("### Investment")
-        investment_rate = st.slider("Investment Rate (%)", 0.0, 10.0, value=5.0) / 100
+        investment_rate = st.slider("Investment Rate (%)", 0.0, 10.0, value=investment_rate * 100) / 100
 
     if st.button("Calculate"):
         buying_cost = calculate_buying_cost(home_price, down_payment_percentage, loan_term, mortgage_rate, property_tax_rate, insurance_annual, maintenance_percentage, duration_years, selling_cost_percentage)
